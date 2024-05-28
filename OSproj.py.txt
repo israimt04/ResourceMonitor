@@ -1,0 +1,112 @@
+import psutil
+import PySimpleGUI as sg
+
+# Define the layout of the GUI
+layout = [
+    [sg.Text('Process Name'), sg.Text('\tPID'), sg.Text('\tMemory Consumption')],
+    [sg.Text('_' * 80)],
+    *[[sg.Text('', size=(20, 1), key=f'process_name{i}'),
+       sg.Text('', size=(8, 1), key=f'pid{i}'),
+       sg.Text('', size=(20, 1), key=f'memory{i}')] for i in range(20)],
+    [sg.Text('_' * 80)],
+    [sg.Text('CPU Usage:'), sg.Text('', size=(10, 1), key='cpu_usage')],
+    [sg.Exit()]
+]
+
+# Create the GUI window
+window = sg.Window('Memory Consumption and Activity Monitor', layout)
+
+# Start the event loop
+while True:
+    # Read events from the window
+    event, values = window.read(timeout=100)
+
+    # Get the list of running processes
+    processes = [(p.name(), p.pid, p.memory_info().rss) for p in psutil.process_iter()]
+
+    # Sort processes by memory usage (descending)
+    processes.sort(key=lambda x: x[2], reverse=True)
+
+    # Update the GUI with the process information
+    for i in range(20):
+        if i < len(processes):
+            window[f'process_name{i}'].update(processes[i][0])
+            window[f'pid{i}'].update(processes[i][1])
+            window[f'memory{i}'].update(f'{processes[i][2] / (1024*1024):.2f} MB')
+        else:
+            window[f'process_name{i}'].update('')
+            window[f'pid{i}'].update('')
+            window[f'memory{i}'].update('')
+
+    # Get the CPU usage percentage and update the GUI
+    cpu_usage = psutil.cpu_percent(interval=1)
+    window['cpu_usage'].update(f'{cpu_usage:.2f}%')
+
+    # Exit the program if the 'Exit' button is clicked or the window is closed
+    if event == sg.WINDOW_CLOSED or event == 'Exit':
+        break
+
+# Close the GUI window
+window.close()
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
+import psutil
+import PySimpleGUI as sg
+
+# Define the layout of the GUI
+layout = [
+    [sg.Text('Process Name'), sg.Text('\tPID'), sg.Text('\tMemory Consumption'), sg.Text('\tCPU Usage')],
+    [sg.Text('_' * 100)],
+    *[[sg.Text('', size=(20, 1), key=f'process_name{i}'),
+       sg.Text('', size=(8, 1), key=f'pid{i}'),
+       sg.Text('', size=(20, 1), key=f'memory{i}'),
+       sg.Text('', size=(10, 1), key=f'cpu{i}')] for i in range(20)],
+    [sg.Text('_' * 100)],
+    [sg.Text('Total CPU Usage:'), sg.Text('', size=(10, 1), key='cpu_usage')],
+    [sg.Exit()]
+]
+
+# Create the GUI window
+window = sg.Window('Memory Consumption and Activity Monitor', layout)
+
+# Start the event loop
+while True:
+    # Read events from the window
+    event, values = window.read(timeout=100)
+
+    # Get the list of running processes
+    processes = [(p.name(), p.pid, p.memory_info().rss) for p in psutil.process_iter()]
+
+    # Sort processes by memory usage (descending)
+    processes.sort(key=lambda x: x[2], reverse=True)
+
+    # Update the GUI with the process information
+    for i in range(20):
+        if i < len(processes):
+            process = processes[i]
+            window[f'process_name{i}'].update(process[0])
+            window[f'pid{i}'].update(process[1])
+            window[f'memory{i}'].update(f'{process[2] / (1024*1024):.2f} MB')
+            process_obj = psutil.Process(process[1])
+            cpu_percent = process_obj.cpu_percent(interval=0.1)
+            window[f'cpu{i}'].update(f'{(cpu_percent/10):.2f}%')
+        else:
+            window[f'process_name{i}'].update('')
+            window[f'pid{i}'].update('')
+            window[f'memory{i}'].update('')
+            window[f'cpu{i}'].update('')
+
+    # Get the CPU usage percentage and update the GUI
+    cpu_usage = psutil.cpu_percent(interval=1)
+    window['cpu_usage'].update(f'{cpu_usage:.2f}%')
+
+    # Exit the program if the 'Exit' button is clicked or the window is closed
+    if event == sg.WINDOW_CLOSED or event == 'Exit':
+        break
+
+# Close the GUI window
+window.close()
+
